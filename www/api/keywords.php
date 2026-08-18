@@ -32,6 +32,29 @@ $pdo = conn();
 
 header('Content-Type: application/json');
 
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+if ($method === 'GET') {
+    $id = $_GET['id'] ?? null;
+    if ($id !== null) {
+        $id = (int)$id;
+        $stmt = $pdo->prepare('SELECT id, phrase FROM keywords WHERE id = :id');
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $keyword = $stmt->fetch();
+        if ($keyword) {
+            echo json_encode(['success' => true, 'id' => $keyword['id'], 'phrase' => $keyword['phrase']]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Keyword not found']);
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Missing id parameter']);
+    }
+    exit;
+}
+
 $action = $_POST['action'] ?? '';
 $phrase = $_POST['phrase'] ?? '';
 

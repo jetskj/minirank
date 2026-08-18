@@ -4,7 +4,69 @@ require __DIR__.'/../core/db.php';
 $router = new stdClass();
 $router->dispatch = function($uri) {
     $uri = trim($uri, '/');
-    if ($uri === '' || $uri === 'dashboard') {
+    $keywordId = $_GET['keyword'] ?? null;
+
+    if ($keywordId !== null) {
+        $keywordId = (int)$keywordId;
+        $pdo = conn();
+
+        $stmt = $pdo->prepare('SELECT id, phrase FROM keywords WHERE id = :id');
+        $stmt->bindValue(':id', $keywordId, PDO::PARAM_INT);
+        $stmt->execute();
+        $keyword = $stmt->fetch();
+
+        $positions = [];
+        if ($keyword) {
+            $stmtPos = $pdo->prepare('SELECT date, position FROM positions WHERE keyword_id = :keyword_id ORDER BY date ASC');
+            $stmtPos->bindValue(':keyword_id', $keywordId, PDO::PARAM_INT);
+            $stmtPos->execute();
+            $positions = $stmtPos->fetchAll();
+        }
+
+        $today = date('Y-m-d');
+        $firstDate = $positions ? $positions[0]['date'] : $today;
+        $lastDate = $positions ? $positions[count($positions)-1]['date'] : $today;
+
+        echo '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniRank - ' . ($keyword ? htmlspecialchars($keyword['phrase']) : 'Keyword') . '</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>MiniRank - ' . ($keyword ? htmlspecialchars($keyword['phrase']) : 'Keyword') . '</h1>
+        <p><a href="?view=dashboard">Back to Dashboard</a></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Position</th>
+                </tr>
+            </thead>
+            <tbody>';
+        if ($positions) {
+            echo implode('', array_map(function($pos) {
+                return '<tr>
+                            <td>' . htmlspecialchars($pos['date']) . '</td>
+                            <td>' . htmlspecialchars($pos['position']) . '</td>
+                        </tr>';
+            }, $positions));
+        } else {
+            echo '<tr><td colspan="2">No position history available</td></tr>';
+        }
+        echo '
+            </tbody>
+        </table>
+        <p>Date range: ' . htmlspecialchars($firstDate) . ' - ' . htmlspecialchars($lastDate) . '</p>
+        <p>Showing 30-day history</p>
+        <p><a href="?view=dashboard">Back to Dashboard</a></p>
+    </div>
+</body>
+</html>';
+    } elseif ($uri === '' || $uri === 'dashboard' || $uri === '/') {
         $pdo = conn();
         $stmt = $pdo->query('SELECT id, phrase FROM keywords ORDER BY phrase');
         $keywords = $stmt->fetchAll();
@@ -64,7 +126,7 @@ $router->dispatch = function($uri) {
                         default => 'Stable',
                     };
 return '<tr class="' . $trendClass . '" data-id="' . $row['keyword_id'] . '" data-positions=\'' . json_encode($row['positions']) . '\'>
-                            <td>' . htmlspecialchars($row['phrase']) . '</td>
+                            <td><a href="?keyword=' . $row['keyword_id'] . '">' . htmlspecialchars($row['phrase']) . '</a></td>
                             <td class="kw-pos">' . htmlspecialchars($row['position']) . '</td>
                             <td class="kw-trend ' . $trendClass . '">' . $trendLabel . '</td>
                             <td><button class="refresh-btn" data-id="' . $row['keyword_id'] . '">Refresh</button></td>
