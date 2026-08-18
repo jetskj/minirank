@@ -1,13 +1,29 @@
 <?php
-
 require __DIR__.'/../../core/db.php';
+require __DIR__.'/../../core/auth.php';
 
 $pdo = conn();
-
 header('Content-Type: application/json');
+
+if (!is_logged_in()) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+    exit;
+}
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+if ($method === 'POST') {
+    $headers = getallheaders();
+    $csrfToken = $headers['X-CSRF-Token'] ?? ($headers['x-csrf-token'] ?? ($input['csrf_token'] ?? ($_POST['csrf_token'] ?? '')));
+    if (!validate_csrf_token($csrfToken)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Invalid or missing CSRF token']);
+        exit;
+    }
+}
+
 $keywordId = $input['keyword_id'] ?? ($_GET['keyword_id'] ?? null);
 $projectId = $input['project_id'] ?? ($_GET['project_id'] ?? null);
 $today = date('Y-m-d');
@@ -76,6 +92,15 @@ if ($method === 'POST') {
 } else {
     if ($keywordId !== null) {
         $keywordId = (int)$keywordId;
+        $stmtChk = $pdo->prepare('SELECT id FROM keywords WHERE id = :id');
+        $stmtChk->bindValue(':id', $keywordId, PDO::PARAM_INT);
+        $stmtChk->execute();
+        if (!$stmtChk->fetch()) {
+            http_response_code(404);
+            echo json_encode([]);
+            exit;
+        }
+
         $stmt = $pdo->prepare('SELECT date, position FROM positions WHERE keyword_id = :keyword_id ORDER BY date DESC');
         $stmt->bindValue(':keyword_id', $keywordId, PDO::PARAM_INT);
         $stmt->execute();
@@ -89,7 +114,7 @@ if ($method === 'POST') {
         echo json_encode($stmt->fetchAll());
         exit;
     } else {
-        $stmt = $pdo->query('SELECT keyword_id, date, position FROM positions ORDER BY date DESC');
+        $stmt = $pdo->query('SELECT p.keyword_id, p.date, p.position FROM positions p JOIN keywords k ON p.keyword_id = k.id ORDER BY p.date DESC');
         echo json_encode($stmt->fetchAll());
         exit;
     }

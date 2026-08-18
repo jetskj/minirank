@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const rangeFilter = document.getElementById('range-filter');
     const tableBody = document.querySelector('tbody');
 
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.content : '';
+    }
+
     function filterRows() {
         if (!tableBody) return;
         const term = searchInput ? searchInput.value.toLowerCase() : '';
@@ -84,7 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const res = await fetch('api/positions', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': getCsrfToken()
+                        },
                         body: JSON.stringify({ keyword_id: parseInt(keywordId) })
                     });
                     const data = await res.json();
@@ -119,7 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const res = await fetch('api/keywords', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': getCsrfToken()
+                        },
                         body: JSON.stringify({ action: 'edit', id: parseInt(keywordId), old: oldPhrase, new: newPhrase.trim() })
                     });
                     const data = await res.json();
@@ -151,7 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const res = await fetch('api/keywords', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': getCsrfToken()
+                        },
                         body: JSON.stringify({ action: 'delete', id: parseInt(keywordId) })
                     });
                     const data = await res.json();
@@ -185,7 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const res = await fetch('api/keywords', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    },
                     body: JSON.stringify({ action: 'add', phrase, project_id: parseInt(projectId) })
                 });
                 const data = await res.json();

@@ -1,11 +1,28 @@
 <?php
 require_once __DIR__.'/../../core/db.php';
+require_once __DIR__.'/../../core/auth.php';
 
 $pdo = conn();
 header('Content-Type: application/json');
 
+if (!is_logged_in()) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+    exit;
+}
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+if ($method !== 'GET') {
+    $headers = getallheaders();
+    $csrfToken = $headers['X-CSRF-Token'] ?? ($headers['x-csrf-token'] ?? ($input['csrf_token'] ?? ($_POST['csrf_token'] ?? '')));
+    if (!validate_csrf_token($csrfToken)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Invalid or missing CSRF token']);
+        exit;
+    }
+}
 
 $action = $input['action'] ?? ($_POST['action'] ?? ($_GET['action'] ?? ''));
 $phrase = $input['phrase'] ?? ($_POST['phrase'] ?? ($_GET['phrase'] ?? ''));

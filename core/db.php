@@ -29,22 +29,46 @@ if (!function_exists('conn')) {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );');
 
+            // Schema migration for users table
+            $pdo->exec('CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );');
+
             $cols = $pdo->query("PRAGMA table_info(keywords)")->fetchAll();
             $hasProjectId = false;
+            $hasUserId = false;
             foreach ($cols as $col) {
                 if ($col['name'] === 'project_id') {
                     $hasProjectId = true;
-                    break;
+                }
+                if ($col['name'] === 'user_id') {
+                    $hasUserId = true;
                 }
             }
             if (!$hasProjectId) {
                 $pdo->exec('ALTER TABLE keywords ADD COLUMN project_id INTEGER DEFAULT 1');
+            }
+            if (!$hasUserId) {
+                $pdo->exec('ALTER TABLE keywords ADD COLUMN user_id INTEGER DEFAULT 1');
             }
 
             // Ensure default project exists
             $stmt = $pdo->query('SELECT COUNT(*) FROM projects');
             if ($stmt->fetch()['COUNT(*)'] == 0) {
                 $pdo->exec("INSERT INTO projects (domain_name) VALUES ('example.com'), ('myportfolio.dev'), ('shop.example')");
+            }
+
+            // Ensure default user exists
+            $stmtUser = $pdo->query('SELECT COUNT(*) FROM users');
+            if ($stmtUser->fetch()['COUNT(*)'] == 0) {
+                $defaultHash = password_hash('admin123', PASSWORD_DEFAULT);
+                $stmtIns = $pdo->prepare('INSERT INTO users (username, password_hash) VALUES (:username, :password_hash)');
+                $stmtIns->bindValue(':username', 'admin', PDO::PARAM_STR);
+                $stmtIns->bindValue(':password_hash', $defaultHash, PDO::PARAM_STR);
+                $stmtIns->execute();
             }
         }
         return $pdo;

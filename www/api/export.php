@@ -1,7 +1,14 @@
 <?php
 require_once __DIR__.'/../../core/db.php';
+require_once __DIR__.'/../../core/auth.php';
 
 $pdo = conn();
+
+if (!is_logged_in()) {
+    http_response_code(401);
+    echo "Unauthorized";
+    exit;
+}
 
 $keywordId = $_GET['keyword_id'] ?? ($_GET['keyword'] ?? null);
 
