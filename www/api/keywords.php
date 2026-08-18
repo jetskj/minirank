@@ -12,18 +12,21 @@ $phrase = $input['phrase'] ?? ($_POST['phrase'] ?? ($_GET['phrase'] ?? ''));
 $id = $input['id'] ?? ($_POST['id'] ?? ($_GET['id'] ?? null));
 $newPhrase = $input['new'] ?? ($input['new_phrase'] ?? ($_POST['new'] ?? ($_POST['new_phrase'] ?? '')));
 $oldPhrase = $input['old'] ?? ($_POST['old'] ?? '');
+$projectId = $input['project_id'] ?? ($_POST['project_id'] ?? ($_GET['project_id'] ?? 1));
+$projectId = (int)$projectId;
 
-function add_phrase($pdo, $phrase) {
+function add_phrase($pdo, $phrase, $projectId) {
     $phrase = trim($phrase);
     if ($phrase === '') {
         return ['success' => false, 'error' => 'Phrase cannot be empty'];
     }
     try {
-        $stmt = $pdo->prepare('INSERT INTO keywords (phrase) VALUES (:phrase)');
+        $stmt = $pdo->prepare('INSERT INTO keywords (project_id, phrase) VALUES (:project_id, :phrase)');
+        $stmt->bindValue(':project_id', $projectId, PDO::PARAM_INT);
         $stmt->bindValue(':phrase', $phrase, PDO::PARAM_STR);
         if ($stmt->execute()) {
             $id = $pdo->lastInsertId();
-            return ['success' => true, 'id' => (int)$id, 'phrase' => $phrase];
+            return ['success' => true, 'id' => (int)$id, 'phrase' => $phrase, 'project_id' => $projectId];
         }
     } catch (PDOException $e) {
         return ['success' => false, 'error' => 'Keyword already exists or database error'];
@@ -74,18 +77,20 @@ function delete_phrase($pdo, $id) {
 if ($method === 'GET') {
     if ($id !== null) {
         $id = (int)$id;
-        $stmt = $pdo->prepare('SELECT id, phrase FROM keywords WHERE id = :id');
+        $stmt = $pdo->prepare('SELECT id, phrase, project_id FROM keywords WHERE id = :id');
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         $keyword = $stmt->fetch();
         if ($keyword) {
-            echo json_encode(['success' => true, 'id' => $keyword['id'], 'phrase' => $keyword['phrase']]);
+            echo json_encode(['success' => true, 'id' => $keyword['id'], 'phrase' => $keyword['phrase'], 'project_id' => $keyword['project_id']]);
         } else {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Keyword not found']);
         }
     } else {
-        $stmt = $pdo->query('SELECT id, phrase FROM keywords ORDER BY phrase');
+        $stmt = $pdo->prepare('SELECT id, phrase, project_id FROM keywords WHERE project_id = :project_id ORDER BY phrase');
+        $stmt->bindValue(':project_id', $projectId, PDO::PARAM_INT);
+        $stmt->execute();
         echo json_encode(['success' => true, 'keywords' => $stmt->fetchAll()]);
     }
     exit;
@@ -95,7 +100,7 @@ $result = ['success' => false];
 
 switch ($action) {
     case 'add':
-        $result = add_phrase($pdo, $phrase);
+        $result = add_phrase($pdo, $phrase, $projectId);
         break;
     case 'edit':
         $result = edit_phrase($pdo, $id, $oldPhrase, $newPhrase);

@@ -122,7 +122,20 @@ $router->dispatch = function($uri) {
 </html>';
     } elseif ($uri === '' || $uri === 'dashboard' || $uri === '/') {
         $pdo = conn();
-        $stmt = $pdo->query('SELECT id, phrase FROM keywords ORDER BY phrase');
+        $projects = get_projects($pdo);
+        $selectedProjectId = isset($_GET['project_id']) ? (int)$_GET['project_id'] : ($projects[0]['id'] ?? 1);
+
+        $selectedProjectDomain = 'example.com';
+        foreach ($projects as $proj) {
+            if ($proj['id'] === $selectedProjectId) {
+                $selectedProjectDomain = $proj['domain_name'];
+                break;
+            }
+        }
+
+        $stmt = $pdo->prepare('SELECT id, phrase FROM keywords WHERE project_id = :project_id ORDER BY phrase');
+        $stmt->bindValue(':project_id', $selectedProjectId, PDO::PARAM_INT);
+        $stmt->execute();
         $keywords = $stmt->fetchAll();
 
         $rows = [];
@@ -149,13 +162,22 @@ $router->dispatch = function($uri) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniRank Dashboard</title>
+    <title>MiniRank Dashboard - ' . htmlspecialchars($selectedProjectDomain) . '</title>
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Tracking: example.com</h1>
+    <div class="container" data-project-id="' . $selectedProjectId . '">
+        <h1>Tracking: ' . htmlspecialchars($selectedProjectDomain) . '</h1>
         <div class="search-filter-bar">
+            <div class="project-selector-wrapper">
+                <label for="project-selector"><strong>Project:</strong></label>
+                <select id="project-selector" class="trend-filter">
+                    ' . implode('', array_map(function($proj) use ($selectedProjectId) {
+                        $selected = ($proj['id'] === $selectedProjectId) ? 'selected' : '';
+                        return '<option value="' . $proj['id'] . '" ' . $selected . '>' . htmlspecialchars($proj['domain_name']) . '</option>';
+                    }, $projects)) . '
+                </select>
+            </div>
             <input type="text" id="search" placeholder="Search phrases..." class="search-input">
             <select id="trend-filter" class="trend-filter">
                 <option value="All">All Trends</option>

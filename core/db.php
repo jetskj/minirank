@@ -21,8 +21,40 @@ if (!function_exists('conn')) {
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 ]
             );
+
+            // Schema migration for projects and project_id
+            $pdo->exec('CREATE TABLE IF NOT EXISTS projects (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                domain_name TEXT NOT NULL UNIQUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );');
+
+            $cols = $pdo->query("PRAGMA table_info(keywords)")->fetchAll();
+            $hasProjectId = false;
+            foreach ($cols as $col) {
+                if ($col['name'] === 'project_id') {
+                    $hasProjectId = true;
+                    break;
+                }
+            }
+            if (!$hasProjectId) {
+                $pdo->exec('ALTER TABLE keywords ADD COLUMN project_id INTEGER DEFAULT 1');
+            }
+
+            // Ensure default project exists
+            $stmt = $pdo->query('SELECT COUNT(*) FROM projects');
+            if ($stmt->fetch()['COUNT(*)'] == 0) {
+                $pdo->exec("INSERT INTO projects (domain_name) VALUES ('example.com'), ('myportfolio.dev'), ('shop.example')");
+            }
         }
         return $pdo;
+    }
+}
+
+if (!function_exists('get_projects')) {
+    function get_projects($pdo) {
+        $stmt = $pdo->query('SELECT id, domain_name FROM projects ORDER BY domain_name');
+        return $stmt->fetchAll();
     }
 }
 

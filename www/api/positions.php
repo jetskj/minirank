@@ -9,6 +9,7 @@ header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $keywordId = $input['keyword_id'] ?? ($_GET['keyword_id'] ?? null);
+$projectId = $input['project_id'] ?? ($_GET['project_id'] ?? null);
 $today = date('Y-m-d');
 
 if ($method === 'POST') {
@@ -41,9 +42,16 @@ if ($method === 'POST') {
         ]);
         exit;
     } else {
-        $allKeywords = $pdo->query('SELECT id FROM keywords')->fetchAll();
+        if ($projectId !== null) {
+            $stmt = $pdo->prepare('SELECT id FROM keywords WHERE project_id = :project_id');
+            $stmt->bindValue(':project_id', (int)$projectId, PDO::PARAM_INT);
+            $stmt->execute();
+            $targetKeywords = $stmt->fetchAll();
+        } else {
+            $targetKeywords = $pdo->query('SELECT id FROM keywords')->fetchAll();
+        }
         $results = [];
-        foreach ($allKeywords as $kw) {
+        foreach ($targetKeywords as $kw) {
             $kwId = $kw['id'];
             $position = rand(1, 100);
             $stmtIns = $pdo->prepare('INSERT OR REPLACE INTO positions (keyword_id, date, position) VALUES (:keyword_id, :date, :position)');
@@ -73,6 +81,12 @@ if ($method === 'POST') {
         $stmt->execute();
         $positions = $stmt->fetchAll();
         echo json_encode($positions);
+        exit;
+    } else if ($projectId !== null) {
+        $stmt = $pdo->prepare('SELECT p.keyword_id, p.date, p.position FROM positions p JOIN keywords k ON p.keyword_id = k.id WHERE k.project_id = :project_id ORDER BY p.date DESC');
+        $stmt->bindValue(':project_id', (int)$projectId, PDO::PARAM_INT);
+        $stmt->execute();
+        echo json_encode($stmt->fetchAll());
         exit;
     } else {
         $stmt = $pdo->query('SELECT keyword_id, date, position FROM positions ORDER BY date DESC');

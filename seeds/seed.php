@@ -7,6 +7,9 @@ $numKeywords = $args['keywords'] ?? 10;
 
 $pdo = conn();
 
+$projects = get_projects($pdo);
+$defaultProjectId = $projects[0]['id'] ?? 1;
+
 // Insert default keywords if none exist
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM keywords');
 $stmt->execute();
@@ -24,8 +27,10 @@ if ($count === 0) {
         'code review',
         'software architecture',
     ];
-    foreach ($defaultKeywords as $phrase) {
-        $pdo->prepare('INSERT INTO keywords (phrase) VALUES (?)')->execute([$phrase]);
+    foreach ($defaultKeywords as $index => $phrase) {
+        // Distribute across projects if multiple exist
+        $projectId = $projects[$index % count($projects)]['id'] ?? $defaultProjectId;
+        $pdo->prepare('INSERT INTO keywords (project_id, phrase) VALUES (?, ?)')->execute([$projectId, $phrase]);
     }
 }
 

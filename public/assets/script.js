@@ -64,6 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
         rangeFilter.addEventListener('change', filterRows);
     }
 
+    // Project selector change
+    const projectSelector = document.getElementById('project-selector');
+    if (projectSelector) {
+        projectSelector.addEventListener('change', (e) => {
+            const projectId = e.target.value;
+            window.location.href = `?project_id=${projectId}`;
+        });
+    }
+
     // Event delegation for table action buttons (Refresh, Edit, Delete)
     if (tableBody) {
         tableBody.addEventListener('click', async (e) => {
@@ -170,11 +179,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const phrase = input.value.trim();
             if (!phrase) return;
 
+            const container = document.querySelector('.container');
+            const projectId = container ? container.dataset.projectId : 1;
+
             try {
                 const res = await fetch('api/keywords', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'add', phrase })
+                    body: JSON.stringify({ action: 'add', phrase, project_id: parseInt(projectId) })
                 });
                 const data = await res.json();
 
