@@ -33,15 +33,10 @@ if ($count === 0) {
 $keywords = $pdo->query('SELECT id, phrase FROM keywords')->fetchAll();
 
 // Generate 30 days of position data for each keyword
-$today = new DateTime();
-$date = clone $today;
-$date->modify('-29 days');
-
 foreach ($keywords as $kw) {
     $keywordId = $kw['id'];
     for ($i = 0; $i < 30; $i++) {
-        $date->modify('+1 day');
-        $dateStr = $date->format('Y-m-d');
+        $dateStr = date('Y-m-d', strtotime("-$i days"));
         $position = random_int(1, 100);
         $pdo->prepare(
             'INSERT INTO positions (keyword_id, date, position) VALUES (?, ?, ?) ON CONFLICT(keyword_id, date) DO NOTHING'
