@@ -10,7 +10,7 @@ function conn() {
     static $pdo = null;
     if ($pdo === null) {
         $pdo = new PDO(
-            'sqlite:'.dirname(__DIR__, 2).'/data/minirank.sqlite',
+            'sqlite:'.dirname(__DIR__).'/data/minirank.sqlite',
             null,
             null,
             [
