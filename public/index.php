@@ -101,7 +101,22 @@ $router->dispatch = function($uri) {
 <body>
     <div class="container">
         <h1>Tracking: example.com</h1>
-        <input type="text" id="search" placeholder="Search phrases..." class="search-input">
+        <div class="search-filter-bar">
+            <input type="text" id="search" placeholder="Search phrases..." class="search-input">
+            <select id="trend-filter" class="trend-filter">
+                <option value="All">All Trends</option>
+                <option value="Improved">Improved</option>
+                <option value="Declined">Declined</option>
+                <option value="Stable">Stable</option>
+            </select>
+            <select id="range-filter" class="trend-filter">
+                <option value="All">All Positions</option>
+                <option value="Top 3">Top 3 (1-3)</option>
+                <option value="Top 10">Top 10 (1-10)</option>
+                <option value="Top 50">Top 50 (1-50)</option>
+                <option value="51+">51+</option>
+            </select>
+        </div>
         
         <form id="add-keyword-form" class="add-keyword-form">
             <input type="text" id="new-keyword" placeholder="New keyword...">

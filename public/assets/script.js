@@ -1,20 +1,67 @@
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search');
+    const trendFilter = document.getElementById('trend-filter');
+    const rangeFilter = document.getElementById('range-filter');
     const tableBody = document.querySelector('tbody');
 
-    // Live search filter
-    if (searchInput && tableBody) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const rows = tableBody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const phraseCell = row.cells[0];
-                if (phraseCell) {
-                    const phrase = phraseCell.textContent.toLowerCase();
-                    row.style.display = phrase.includes(term) ? '' : 'none';
+    function filterRows() {
+        if (!tableBody) return;
+        const term = searchInput ? searchInput.value.toLowerCase() : '';
+        const trendValue = trendFilter ? trendFilter.value : 'All';
+        const rangeValue = rangeFilter ? rangeFilter.value : 'All';
+        const rows = tableBody.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const phraseCell = row.cells[0];
+            const trendCell = row.querySelector('.kw-trend');
+            const posCell = row.querySelector('.kw-pos');
+
+            let matchesSearch = true;
+            if (phraseCell) {
+                const phrase = phraseCell.textContent.toLowerCase();
+                matchesSearch = phrase.includes(term);
+            }
+
+            let matchesTrend = true;
+            if (trendValue !== 'All') {
+                const trendText = trendCell ? trendCell.textContent.trim() : '';
+                matchesTrend = (trendText === trendValue);
+            }
+
+            let matchesRange = true;
+            if (rangeValue !== 'All') {
+                const posText = posCell ? posCell.textContent.trim() : '';
+                const pos = (posText === '-' || posText === '') ? null : parseInt(posText, 10);
+                if (pos === null) {
+                    matchesRange = false;
+                } else if (rangeValue === 'Top 3') {
+                    matchesRange = (pos >= 1 && pos <= 3);
+                } else if (rangeValue === 'Top 10') {
+                    matchesRange = (pos >= 1 && pos <= 10);
+                } else if (rangeValue === 'Top 50') {
+                    matchesRange = (pos >= 1 && pos <= 50);
+                } else if (rangeValue === '51+') {
+                    matchesRange = (pos >= 51);
                 }
-            });
+            }
+
+            row.style.display = (matchesSearch && matchesTrend && matchesRange) ? '' : 'none';
         });
+    }
+
+    // Live search filter
+    if (searchInput) {
+        searchInput.addEventListener('input', filterRows);
+    }
+
+    // Trend dropdown filter
+    if (trendFilter) {
+        trendFilter.addEventListener('change', filterRows);
+    }
+
+    // Range dropdown filter
+    if (rangeFilter) {
+        rangeFilter.addEventListener('change', filterRows);
     }
 
     // Event delegation for table action buttons (Refresh, Edit, Delete)
@@ -43,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 trendCell.className = `kw-trend ${data.trend.toLowerCase()}`;
                                 row.className = data.trend.toLowerCase();
                             }
+                            filterRows();
                         }
                     }
                 } catch (err) {
@@ -146,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     tableBody.prepend(newRow);
                     input.value = '';
+                    filterRows();
                 } else {
                     alert(data.error || 'Failed to add keyword');
                 }
