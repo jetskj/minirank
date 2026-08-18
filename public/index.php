@@ -100,15 +100,21 @@ $router->dispatch = function($uri) {
 </head>
 <body>
     <div class="container">
-        <h1>MiniRank Dashboard</h1>
+        <h1>Tracking: example.com</h1>
         <input type="text" id="search" placeholder="Search phrases..." class="search-input">
+        
+        <form id="add-keyword-form" class="add-keyword-form">
+            <input type="text" id="new-keyword" placeholder="New keyword...">
+            <button type="submit">Add Keyword</button>
+        </form>
+        
         <table>
             <thead>
                 <tr>
                     <th>Phrase</th>
                     <th>Position</th>
                     <th>7-day Trend</th>
-                    <th></th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,7 +135,11 @@ return '<tr class="' . $trendClass . '" data-id="' . $row['keyword_id'] . '" dat
                             <td><a href="?keyword=' . $row['keyword_id'] . '">' . htmlspecialchars($row['phrase']) . '</a></td>
                             <td class="kw-pos">' . htmlspecialchars($row['position']) . '</td>
                             <td class="kw-trend ' . $trendClass . '">' . $trendLabel . '</td>
-                            <td><button class="refresh-btn" data-id="' . $row['keyword_id'] . '">Refresh</button></td>
+                            <td>
+                                <button class="edit-btn" data-id="' . $row['keyword_id'] . '" data-phrase="' . htmlspecialchars($row['phrase'], ENT_QUOTES) . '">Edit</button>
+                                <button class="delete-btn" data-id="' . $row['keyword_id'] . '">Delete</button>
+                                <button class="refresh-btn" data-id="' . $row['keyword_id'] . '">Refresh</button>
+                            </td>
                         </tr>';
                 }, $rows)) . '
             </tbody>
@@ -141,12 +151,7 @@ return '<tr class="' . $trendClass . '" data-id="' . $row['keyword_id'] . '" dat
     } elseif ($uri === 'keyword') {
         echo 'Keyword endpoint';
     } elseif ($uri === 'api/keywords') {
-        if (!empty($_POST['action'])) {
-            require __DIR__.'/../www/api/keywords.php';
-        } else {
-            http_response_code(404);
-            echo 'Not found';
-        }
+        require __DIR__.'/../www/api/keywords.php';
     } elseif ($uri === 'api/positions') {
         require __DIR__.'/../www/api/positions.php';
     } else {
