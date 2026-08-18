@@ -16,13 +16,7 @@ $router->dispatch = function($uri) {
             echo 'Not found';
         }
     } elseif ($uri === 'api/positions') {
-        if (!empty($_POST['keyword_id'])) {
-            http_response_code(501);
-            echo 'Not implemented yet';
-        } else {
-            http_response_code(501);
-            echo 'Not implemented yet';
-        }
+        require __DIR__.'/../www/api/positions.php';
     } else {
         http_response_code(404);
         echo 'Not found';
