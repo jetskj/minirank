@@ -39,7 +39,7 @@ $router->dispatch = function($uri) {
 <body>
     <div class="container">
         <h1>MiniRank - ' . ($keyword ? htmlspecialchars($keyword['phrase']) : 'Keyword') . '</h1>
-        <p><a href="?view=dashboard">Back to Dashboard</a></p>';
+        <p><a href="?view=dashboard">Back to Dashboard</a>' . ($keyword ? ' | <a href="api/export?keyword_id=' . (int)$keywordId . '">Download CSV</a>' : '') . '</p>';
 
         if ($keyword) {
             echo '<div style="background: #fff; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -70,7 +70,7 @@ $router->dispatch = function($uri) {
         </table>
         <p>Date range: ' . htmlspecialchars($firstDate) . ' - ' . htmlspecialchars($lastDate) . '</p>
         <p>Showing 30-day history</p>
-        <p><a href="?view=dashboard">Back to Dashboard</a></p>
+        <p><a href="?view=dashboard">Back to Dashboard</a>' . ($keyword ? ' | <a href="api/export?keyword_id=' . (int)$keywordId . '">Download CSV</a>' : '') . '</p>
     </div>';
 
         if ($keyword) {
@@ -223,6 +223,8 @@ return '<tr class="' . $trendClass . '" data-id="' . $row['keyword_id'] . '" dat
         require __DIR__.'/../www/api/keywords.php';
     } elseif ($uri === 'api/positions') {
         require __DIR__.'/../www/api/positions.php';
+    } elseif ($uri === 'api/export') {
+        require __DIR__.'/../www/api/export.php';
     } else {
         http_response_code(404);
         echo 'Not found';
