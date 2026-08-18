@@ -34,12 +34,20 @@ $router->dispatch = function($uri) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiniRank - ' . ($keyword ? htmlspecialchars($keyword['phrase']) : 'Keyword') . '</title>
     <link rel="stylesheet" href="assets/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>MiniRank - ' . ($keyword ? htmlspecialchars($keyword['phrase']) : 'Keyword') . '</h1>
-        <p><a href="?view=dashboard">Back to Dashboard</a></p>
-        <table>
+        <p><a href="?view=dashboard">Back to Dashboard</a></p>';
+
+        if ($keyword) {
+            echo '<div style="background: #fff; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <canvas id="trendChart"></canvas>
+            </div>';
+        }
+
+        echo '<table>
             <thead>
                 <tr>
                     <th>Date</th>
@@ -63,8 +71,54 @@ $router->dispatch = function($uri) {
         <p>Date range: ' . htmlspecialchars($firstDate) . ' - ' . htmlspecialchars($lastDate) . '</p>
         <p>Showing 30-day history</p>
         <p><a href="?view=dashboard">Back to Dashboard</a></p>
-    </div>
-</body>
+    </div>';
+
+        if ($keyword) {
+            echo '<script>
+            document.addEventListener("DOMContentLoaded", async () => {
+                const keywordId = ' . (int)$keywordId . ';
+                try {
+                    const res = await fetch(`api/positions?keyword_id=${keywordId}`);
+                    const data = await res.json();
+                    const sortedData = data.reverse();
+                    
+                    const labels = sortedData.map(item => item.date);
+                    const positions = sortedData.map(item => item.position);
+
+                    const ctx = document.getElementById("trendChart").getContext("2d");
+                    new Chart(ctx, {
+                        type: "line",
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: "Position",
+                                data: positions,
+                                borderColor: "#2563eb",
+                                backgroundColor: "rgba(37, 99, 235, 0.1)",
+                                tension: 0.1,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    reverse: true,
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error("Failed to load chart data", err);
+                }
+            });
+            </script>';
+        }
+
+        echo '</body>
 </html>';
     } elseif ($uri === '' || $uri === 'dashboard' || $uri === '/') {
         $pdo = conn();
