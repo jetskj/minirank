@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniRank - Process Document</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #1f2937; background: #f9fafb; margin: 0; padding: 2rem; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 2.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { font-size: 2.25rem; margin-bottom: 0.5rem; color: #111827; }
+        h2 { font-size: 1.5rem; margin-top: 2rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb; color: #1f2937; }
+        h3 { font-size: 1.2rem; margin-top: 1.5rem; color: #374151; }
+        p, li { color: #4b5563; }
+        ul { padding-left: 1.5rem; }
+        .badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; margin-bottom: 1.5rem; }
+        .meta { background: #f3f4f6; padding: 1rem; border-radius: 6px; margin-bottom: 2rem; font-size: 0.95rem; }
+        .prompt-box { background: #f8fafc; border-left: 4px solid #2563eb; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem; white-space: pre-wrap; }
+        a { color: #2563eb; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MiniRank Development Process Document</h1>
+        <div class="badge">AI Coding Assessment — Phase 8</div>
+        
+        <div class="meta">
+            <strong>Candidate Process Report</strong><br>
+            Project: MiniRank (Keyword Position Tracker)<br>
+            Tech Stack: Plain PHP 8, SQLite PDO, Vanilla JavaScript<br>
+            Estimated Effort: ~8–10 hours
+        </div>
+
+        <h2>1. Plan & Key Decisions</h2>
+        <p>Before writing code, a structured modular plan was established (stored in <code>Plan.md</code> and expanded in <code>Plan2.md</code>):</p>
+        <ul>
+            <li><strong>Architecture:</strong> Single front controller pattern (<code>public/index.php</code>) adhering strictly to Plain PHP 8 without heavy frameworks to maintain simplicity and leverage free model context windows effectively.</li>
+            <li><strong>Database:</strong> SQLite database located at <code>data/minirank.sqlite</code> managed via PDO with strict prepared statements and foreign key constraints.</li>
+            <li><strong>Security:</strong> Parameterized queries for all SQL operations, strict input sanitization, output escaping using <code>htmlspecialchars()</code>, and CSRF protection tokens on state-changing requests.</li>
+            <li><strong>Features Scope:</strong> Implemented all must-haves (M1–M6, M8) and multiple stretch goals (S1–S5, S8) including Chart.js visualization, multi-project context, user accounts, advanced filtering, and CSV export.</li>
+        </ul>
+        <p><strong>Hindsight Reflection:</strong> Starting with a clear multi-phase roadmap prevented scope creep and kept code diffs minimal and reviewable. However, early planning for authentication and multi-project relationships saved refactoring time later.</p>
+
+        <h2>2. Prompts & Fixes (Key Interactions & Debugging)</h2>
+        <p>During development, multiple AI models were leveraged. Below are 3 real prompts that mattered, including a critical failure and recovery:</p>
+
+        <h3>Prompt 1: Database Schema & Seeding (Success)</h3>
+        <div class="prompt-box">"Generate a SQLite schema script and a PHP seed script that creates demo keywords with ~30 days of daily positions (1-100) using prepared statements and ON CONFLICT upsert logic."</div>
+        <p><strong>Outcome:</strong> Successfully generated <code>db/schema.sql</code> and <code>seeds/seed.php</code>, establishing a solid foundation for historical trend calculation.</p>
+
+        <h3>Prompt 2: Frontend Refresh Persistence & State Bug (Failure & Recovery)</h3>
+        <p><em>Initial model (Nemotron) struggled with state synchronization between AJAX position refreshes and UI re-renders, causing browser page refreshes to reset state or lose persistence. After multiple failed iterations, Gemini 3.5 Flash Lite was used with this prompt:</em></p>
+        <div class="prompt-box">"Please read @Plan.md I just did phase 6 and a bit of phase 7. There is a problem with the frontend. When I refresh the page in the browser, everything resets back to a previous state. Please fix it, whenever I click the button in the refresh next to an entry, it should stick, and never revert back."</div>
+        <p><strong>Outcome:</strong> Gemini correctly corrected the database query to display the latest position (<code>positions[0]</code>) rather than the oldest 7-day position and ensured proper persistence via POST to <code>api/positions.php</code> stored in SQLite.</p>
+
+        <h3>Prompt 3: User Accounts & CSRF Protection (Success)</h3>
+        <div class="prompt-box">"Implement user authentication (register, login, logout with password hashing and sessions) and CSRF protection across all state-changing forms and AJAX endpoints."</div>
+        <p><strong>Outcome:</strong> Secured all endpoints with header/token validation and added robust user management in <code>core/auth.php</code>.</p>
+
+        <h2>3. Retrospective</h2>
+        <p><strong>What would be done differently:</strong> Establish automated unit tests (S6) earlier in the development lifecycle rather than focusing primarily on feature parity and UI stretch goals.</p>
+        <p><strong>AI Agent Experience:</strong> Using opencode with different models highlighted the importance of model selection. Smaller models required precise, incremental prompts, while fallback to larger context windows (Gemini Flash Lite) efficiently resolved stubborn state bugs in one shot.</p>
+        <p><strong>Total Time Spent:</strong> Approximately 8–10 hours of actual effort.</p>
+
+        <h2>4. Opencode Session Links</h2>
+        <ul>
+            <li><a href="https://opncd.ai/share/SYBh3NCy" target="_blank">Initial Planning Session</a></li>
+            <li><a href="https://opncd.ai/share/m5y3oF2V" target="_blank">Phase 1 Foundation & Routing Fix</a></li>
+            <li><a href="https://opncd.ai/share/xvsFoNhf" target="_blank">Phase 2 Database Schema Execution</a></li>
+            <li><a href="https://opncd.ai/share/dXNCHXyy" target="_blank">Phase 3 Seed Script Generation</a></li>
+            <li><a href="https://opncd.ai/share/3sEprKm3" target="_blank">Phase 4 Keywords CRUD & SQL Safety Verification</a></li>
+            <li><a href="https://opncd.ai/share/Q5Mx36KR" target="_blank">Phase 5 Position Refresh Simulation Endpoint</a></li>
+            <li><a href="https://opncd.ai/share/x36ntjdM" target="_blank">Dashboard UI & Trend Logic (Iteration 1)</a></li>
+            <li><a href="https://opncd.ai/share/4rKxBzU0" target="_blank">Dashboard UI & Trend Logic (Iteration 2)</a></li>
+            <li><a href="https://opncd.ai/share/miMfPNOC" target="_blank">Dashboard UI & Trend Logic (Iteration 3)</a></li>
+            <li><a href="https://opncd.ai/share/0cEMBTz0" target="_blank">Dashboard UI & Trend Logic (Iteration 4)</a></li>
+            <li><a href="https://opncd.ai/share/oSAu7GYq" target="_blank">Rank History & Detail View</a></li>
+            <li><a href="https://opncd.ai/share/Q46ZrXZe" target="_blank">CRUD Action Buttons (Nemotron attempt)</a></li>
+            <li><a href="https://opncd.ai/share/vkWEVpUh" target="_blank">CRUD Action Buttons (Gemini resolution)</a></li>
+            <li><a href="https://opncd.ai/share/psx3w9sn" target="_blank">Stretch Goal: Range & Movement Filters</a></li>
+            <li><a href="https://opncd.ai/share/CpDVPOnX" target="_blank">Stretch Goal: Multiple Projects / Websites</a></li>
+            <li><a href="https://opncd.ai/share/b37Jv5dI" target="_blank">Stretch Goal: User Accounts & CSRF Protection</a></li>
+            <li><a href="https://opncd.ai/share/hZTV2gln" target="_blank">Full Creation & Verification Session</a></li>
+        </ul>
+    </div>
+</body>
+</html>
