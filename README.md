@@ -55,4 +55,5 @@ MiniRank is a miniature full-stack PHP keyword position tracker built with AI as
   - User accounts (register, login, logout, password hashing, sessions) with CSRF protection.
   - Filtering by position range (Top 3, Top 10, Top 50, 51+) and movement.
   - CSV export of keyword position history.
-  - Project conventions defined in `AGENTS.md`.
+   - Project conventions defined in `AGENTS.md`.
+   - Polished, modern SaaS dashboard aesthetic with card containers, soft shadows, clean typography, color-coded trend badges, and full responsiveness for mobile phone aspect ratios.

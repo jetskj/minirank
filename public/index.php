@@ -151,7 +151,8 @@ $router->dispatch = function($uri) use ($pdo, $error, $success) {
             </div>';
         }
 
-        echo '<table>
+        echo '<div class="table-responsive">
+        <table>
             <thead>
                 <tr>
                     <th>Date</th>
@@ -172,6 +173,7 @@ $router->dispatch = function($uri) use ($pdo, $error, $success) {
         echo '
             </tbody>
         </table>
+        </div>
         <p>Date range: ' . htmlspecialchars($firstDate) . ' - ' . htmlspecialchars($lastDate) . '</p>
         <p>Showing 30-day history</p>
         <p><a href="?view=dashboard">Back to Dashboard</a>' . ($keyword ? ' | <a href="api/export?keyword_id=' . (int)$keywordId . '">Download CSV</a>' : '') . '</p>
@@ -307,6 +309,7 @@ $router->dispatch = function($uri) use ($pdo, $error, $success) {
             <button type="submit">Add Keyword</button>
         </form>
         
+        <div class="table-responsive">
         <table>
             <thead>
                 <tr>
@@ -343,6 +346,7 @@ $router->dispatch = function($uri) use ($pdo, $error, $success) {
                 }, $rows)) . '
             </tbody>
         </table>
+        </div>
     </div>
     <script src="assets/script.js"></script>
 </body>
