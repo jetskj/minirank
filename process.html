@@ -62,6 +62,10 @@
         <div class="prompt-box">"can you make the site look a bit more ok? i dont want a super futuristic site but a bit more aesthetically pleasing. dont break it, just change it a little bit. make sure it still works on the phone aspect ratio"</div>
         <p><strong>Outcome:</strong> After all core features and stretch goals were fully coded, the AI overhauled the design across <code>public/assets/style.css</code> and <code>public/index.php</code>, introducing a clean SaaS aesthetic with card containers, soft shadows, polished buttons, subtle trend badges, and robust mobile aspect ratio responsiveness with horizontal table scrolling.</p>
 
+        <h3>Prompt 5: Fixing the Missing Data Directory on Clone (.gitkeep)</h3>
+        <div class="prompt-box">"the folder data is not getting git. why is dat ? it creates an error when i try to build the database if i only download the github files... how should i handle this problem?"</div>
+        <p><strong>Outcome:</strong> Identified the standard Git quirk where Git does not track empty folders and `.gitignore` ignores `data/*.sqlite`. Because the `data/` folder was omitted from cloning, SQLite panicked when running `sqlite3 data/minirank.sqlite < db/schema.sql` due to a non-existent parent directory. Resolved by creating a placeholder file (`data/.gitkeep`) to force Git to track the directory structure while keeping the `.sqlite` database securely ignored.</p>
+
         <h2>3. Retrospective</h2>
         <p><strong>What would be done differently:</strong> Establish automated unit tests (S6) earlier in the development lifecycle rather than focusing primarily on feature parity and UI stretch goals.</p>
         <p><strong>AI Agent Experience:</strong> Using opencode with different models highlighted the importance of model selection. Smaller models required precise, incremental prompts, while fallback to larger context windows (Gemini Flash Lite) efficiently resolved stubborn state bugs in one shot.</p>
@@ -87,6 +91,7 @@
             <li><a href="https://opncd.ai/share/b37Jv5dI" target="_blank">Stretch Goal: User Accounts & CSRF Protection</a></li>
             <li><a href="https://opncd.ai/share/hZTV2gln" target="_blank">Full Creation & Verification Session</a></li>
             <li><a href="https://opncd.ai/share/Qg6cAeCX" target="_blank">UI/UX Design Overhaul & Mobile Responsiveness Session</a></li>
+            <li><a href="https://opncd.ai/share/1WupYNQy" target="_blank">Data Folder & .gitkeep Resolution Session</a></li>
         </ul>
     </div>
 </body>
